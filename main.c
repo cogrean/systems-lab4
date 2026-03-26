@@ -47,6 +47,7 @@ void *producer(void *ptr)
     {
         char *msg = malloc(64);
         sprintf(msg, "thread %d %d", id, i);
+        printf("thread %d pushing value %d", id, i);
         bounded_buffer_push(&queue, msg);
     }
     return NULL;
