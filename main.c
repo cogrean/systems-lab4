@@ -33,6 +33,7 @@ int main()
     }
 
     sleep(5);
+    bounded_buffer_destroy(&queue);
     exit(0);
 }
 
@@ -47,7 +48,7 @@ void *producer(void *ptr)
     {
         char *msg = malloc(64);
         sprintf(msg, "thread %d %d", id, i);
-        printf("thread %d pushing value %d", id, i);
+        printf("thread %d pushing value %d\n", id, i);
         bounded_buffer_push(&queue, msg);
     }
     return NULL;
