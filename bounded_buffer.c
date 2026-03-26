@@ -27,7 +27,7 @@ void bounded_buffer_init(struct bounded_buffer *buffer, int size)
         current_node = next_node;
     }
     current_node->data = NULL;
-    current_node->next_node = NULL;
+    current_node->next_node = buffer;
     current_node->mutex = mutex;
     current_node->full = full;
     current_node->empty = empty;
@@ -41,9 +41,10 @@ void bounded_buffer_push(struct bounded_buffer *buffer, void *item)
     sem_wait(buffer->empty);
     sem_wait(buffer->mutex);
 
+    if (buffer->tail->data != NULL)
+        printf("error: buffer is full\n");
     buffer->tail->data = item;
-    if (buffer->tail->next_node != NULL)
-        buffer->tail = buffer->tail->next_node;
+    buffer->tail = buffer->tail->next_node;
 
     sem_post(buffer->mutex);
     sem_post(buffer->full);
@@ -54,10 +55,11 @@ void *bounded_buffer_pop(struct bounded_buffer *buffer)
     sem_wait(buffer->full);
     sem_wait(buffer->mutex);
 
+    if (buffer->head->data == NULL)
+        printf("error: buffer is empty\n");
     void *item = buffer->head->data;
     buffer->head->data = NULL;
-    if (buffer->head->next_node != NULL)
-        buffer->head = buffer->head->next_node;
+    buffer->head = buffer->head->next_node;
 
     sem_post(buffer->mutex);
     sem_post(buffer->empty);
@@ -74,7 +76,7 @@ void bounded_buffer_destroy(struct bounded_buffer *buffer)
     free(buffer->empty);
 
     struct bounded_buffer *current = buffer->next_node;
-    while (current != NULL)
+    while (current != buffer)
     {
         struct bounded_buffer *next = current->next_node;
         free(current);
